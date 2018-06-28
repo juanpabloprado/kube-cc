@@ -63,6 +63,8 @@ public class SpaceService extends BaseService{
 
         return response;
     }
+
+
     private SpaceEntity fromDoc(Document doc){
         String id = doc.getString("_id");
         return SpaceEntity.builder()

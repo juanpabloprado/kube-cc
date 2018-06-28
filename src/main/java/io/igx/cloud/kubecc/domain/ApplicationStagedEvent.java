@@ -2,17 +2,23 @@ package io.igx.cloud.kubecc.domain;
 
 public class ApplicationStagedEvent {
 
-    private String appId;
+    private final String appId;
+    private final String image;
 
-    public ApplicationStagedEvent(String appId) {
+    public String getImage() {
+        return image;
+    }
+
+
+
+    public ApplicationStagedEvent(String appId, String image) {
         this.appId = appId;
+        this.image = image;
     }
 
     public String getAppId() {
         return appId;
     }
 
-    public void setAppId(String appId) {
-        this.appId = appId;
-    }
+
 }
