@@ -8,6 +8,7 @@ import io.igx.cloud.kubecc.domain.ApplicationUploadedEvent;
 import io.igx.cloud.kubecc.domain.Job;
 import io.igx.cloud.kubecc.services.ApplicationService;
 import io.igx.cloud.kubecc.services.JobService;
+import io.igx.cloud.kubecc.services.S3StorageService;
 import org.cloudfoundry.client.v2.Metadata;
 import org.cloudfoundry.client.v2.applications.*;
 import org.cloudfoundry.client.v2.jobs.JobEntity;
@@ -33,13 +34,16 @@ public class AppsController extends V2Controller{
     private ObjectMapper mapper = new ObjectMapper();
     private final ApplicationEventPublisher publisher;
 
+    private S3StorageService storageService;
+
     @Value("${app.staging.dir:/tmp}")
     private String baseFolder;
 
-    public AppsController(ApplicationService service, JobService jobService, ApplicationEventPublisher publisher) {
+    public AppsController(ApplicationService service, JobService jobService, ApplicationEventPublisher publisher, S3StorageService storageService) {
         this.service = service;
         this.jobService = jobService;
         this.publisher = publisher;
+        this.storageService = storageService;
     }
 
     @PostMapping("/apps")
@@ -55,6 +59,41 @@ public class AppsController extends V2Controller{
     @GetMapping("/apps/{id}")
     public GetApplicationResponse find(@PathVariable("id") String id){
         return service.find(id);
+    }
+
+    @GetMapping("/apps/{id}/stats")
+    public ApplicationStatisticsResponse stats(@PathVariable("id") String id){
+        ApplicationEntity entity = service.find(id).getEntity();
+        return ApplicationStatisticsResponse.builder()
+                .instance("0", InstanceStatistics.builder()
+                        .state("RUNNING")
+                        .statistics(Statistics.builder()
+                                .name(entity.getName())
+                                .host("10.0.0.1")
+                                .usage(Usage.builder()
+                                        .cpu(0.5)
+                                        .disk(1000L)
+                                        .memory(512L)
+                                        .build())
+                                .port(6000)
+                                .memoryQuota(1024L)
+                                .diskQuota(1024L)
+                                .uptime(600L)
+                                .fdsQuota(16384)
+                                .build())
+                        .build())
+                .build();
+    }
+
+    @GetMapping("/apps/{id}/instances")
+    public ApplicationInstancesResponse instances(@PathVariable("id") String id){
+        return ApplicationInstancesResponse.builder()
+                .instance("0", ApplicationInstanceInfo.builder()
+                        .state("RUNNING")
+                        .uptime(600L)
+                        .since(new Double(System.currentTimeMillis()))
+                        .build())
+                .build();
     }
 
 
@@ -82,8 +121,11 @@ public class AppsController extends V2Controller{
             }
             logger.info("Received {} bytes", total);
             new File(baseFolder+"/"+id).mkdirs();
-            String destinationFile = baseFolder+"/"+id+"/application.zip";
-            file.transferTo(new File(destinationFile));
+            String fileName = "application.zip";
+            String destinationFile = baseFolder+"/"+id+"/"+fileName;
+            File file1 = new File(destinationFile);
+            file.transferTo(file1);
+            storageService.s3Store(id, fileName, file1);
             Map<String, Object> jobMetadata = new HashMap<>();
             jobMetadata.put("appId", id);
             jobMetadata.put("fileLocation", destinationFile);

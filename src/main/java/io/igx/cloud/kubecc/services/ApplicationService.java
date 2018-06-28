@@ -24,7 +24,9 @@ public class ApplicationService extends BaseService{
     }
 
     public CreateApplicationResponse create(CreateApplicationRequest request){
+
         Document doc = BsonUtils.fromPojo(request);
+        setDefaults(doc);
         String id = UUID.randomUUID().toString();
         doc.put("_id", id);
         collection.insertOne(doc);
@@ -101,6 +103,20 @@ public class ApplicationService extends BaseService{
         return collection.updateOne(Filters.eq("_id", appId), arrayPush).getMatchedCount() > 0;
     }
 
+
+    private Document setDefaults(Document doc){
+        doc.putIfAbsent("memory", 1024);
+        doc.putIfAbsent("instances", 1);
+        doc.putIfAbsent("disk_quota", 1024);
+        doc.putIfAbsent("state", "STOPPED");
+        doc.putIfAbsent("package_state", "PENDING");
+        doc.putIfAbsent("health_check_type", "port");
+        doc.putIfAbsent("diego", true);
+
+        return doc;
+    }
+
+
     private ApplicationEntity fromDoc(Document doc){
 
         return ApplicationEntity.builder()
@@ -112,6 +128,9 @@ public class ApplicationService extends BaseService{
                 .spaceId(doc.getString("space_guid"))
                 .command(doc.getString("command"))
                 .buildpack(doc.getString("buildpack"))
+                .detectedBuildpack(doc.getString("detected_buildpack"))
+                .detectedStartCommand(doc.getString("detected_start_command"))
+                .detectedBuildpackId(doc.getString("detected_buildpack_guid"))
                 .stackId(doc.getString("stack_guid"))
                 .instances(doc.getInteger("instances"))
                 .memory(doc.getInteger("memory"))

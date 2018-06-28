@@ -46,4 +46,15 @@ public class ApplicationDeploymentRequest {
     public void setSpace(String space) {
         this.space = space;
     }
+
+    @Override
+    public String toString() {
+        return "ApplicationDeploymentRequest{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", image='" + image + '\'' +
+                ", instances=" + instances +
+                ", space='" + space + '\'' +
+                '}';
+    }
 }

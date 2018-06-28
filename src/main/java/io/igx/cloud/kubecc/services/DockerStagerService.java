@@ -32,9 +32,9 @@ public class DockerStagerService {
         logger.info("Staging application " + event.getAppId());
         ApplicationEntity applicationEntity = applicationService.find(event.getAppId()).getEntity();
         Map<String,Object> fields = new HashMap<>();
-        fields.put("status", Job.RUNNING);
+        fields.put("status", Job.COMPLETED);
         jobService.update(event.getJobId(), fields);
-        publisher.publishEvent(new ApplicationStagedEvent(event.getAppId(), "viniciusccarvalho/boot-docker"));
+        publisher.publishEvent(new ApplicationStagedEvent(event.getAppId(), "viniciusccarvalho/docker-boot"));
 
     }
 
