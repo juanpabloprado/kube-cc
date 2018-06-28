@@ -2,9 +2,6 @@ package io.igx.cloud.kubecc.services;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
-import io.fabric8.kubernetes.api.model.Namespace;
-import io.fabric8.kubernetes.api.model.NamespaceBuilder;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.cloudfoundry.client.v2.Metadata;
@@ -19,20 +16,13 @@ import static io.igx.cloud.kubecc.utils.BsonUtils.fromPojo;
 @Service
 public class SpaceService extends BaseService{
 
-    private KubernetesClient client;
 
-    public SpaceService(KubernetesClient client) {
+    public SpaceService() {
         super("spaces");
-        this.client = client;
     }
 
     public CreateSpaceResponse create(CreateSpaceRequest request){
-        try {
-            Namespace namespace = new NamespaceBuilder().withNewMetadata().withName(request.getName()).addToLabels("org", request.getOrganizationId()).endMetadata().build();
-            client.namespaces().create(namespace);
-        }catch (Exception e){
-            throw new IllegalStateException(e);
-        }
+
         Document dbo = fromPojo(request);
         collection.insertOne(dbo);
 
@@ -48,8 +38,6 @@ public class SpaceService extends BaseService{
 
     public boolean delete(String id){
         Document space = collection.findOneAndDelete(Filters.eq("_id", id));
-        Namespace namespace =new NamespaceBuilder().withNewMetadata().withName(space.getString("name")).endMetadata().build();
-        client.namespaces().delete(namespace);
         return true;
     }
 

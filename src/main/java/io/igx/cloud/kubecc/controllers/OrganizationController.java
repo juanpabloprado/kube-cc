@@ -7,7 +7,6 @@ import io.igx.cloud.kubecc.services.SpaceService;
 import org.bson.Document;
 import org.cloudfoundry.client.v2.Metadata;
 import org.cloudfoundry.client.v2.organizations.*;
-import org.cloudfoundry.client.v2.privatedomains.GetPrivateDomainResponse;
 import org.cloudfoundry.client.v2.privatedomains.ListPrivateDomainsResponse;
 import org.cloudfoundry.client.v2.privatedomains.PrivateDomainEntity;
 import org.cloudfoundry.client.v2.privatedomains.PrivateDomainResource;
